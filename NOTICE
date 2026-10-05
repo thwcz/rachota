@@ -1,0 +1,17 @@
+Rachota (modified fork)
+
+The Original Software is Rachota (http://rachota.sourceforge.net/), created by
+Jiri Kovalsky and licensed under the Common Development and Distribution
+License (CDDL) Version 1.0. See LICENSE.
+
+This repository contains Modifications of the Original Software, including
+workflow and user interface changes and updates to build and run on a current
+Java version. All modified and original source files remain under the CDDL
+(see the header in each file). Modified files carry the original notices; the
+source code of this fork is available in this repository.
+
+This project depends on FlatLaf (https://www.formdev.com/flatlaf/), licensed
+under the Apache License 2.0, which is retrieved via Maven and not included in
+this repository.
+
+This fork is not affiliated with or endorsed by the original authors.

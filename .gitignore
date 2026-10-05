@@ -1,0 +1,11 @@
+target/
+Copy (1) target/
+.idea/
+*.iml
+settings.cfg
+diary*.xml
+backup_diary.xml
+build/
+dist/
+*.orig
+*.rej

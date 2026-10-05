@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.cesilko</groupId>
+    <artifactId>rachota</artifactId>
+    <version>2.7</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <app.version>dev</app.version>
+        <app.version.file>${project.build.directory}\generated-resources\version.properties</app.version.file>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src\main\resources</directory>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}\generated-resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>version.properties</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>app-version</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <target>
+                                <tstamp>
+                                    <format property="app.year2" pattern="yy"/>
+                                    <format property="app.timestamp" pattern="yyyyMMddHHmm"/>
+                                    <format property="app.month" pattern="MM"/>
+                                </tstamp>
+                                <property name="app.quarter" value="3"/>
+                                <condition property="app.quarter" value="1" else="${app.quarter}">
+                                    <matches string="${app.month}" pattern="0[1-3]"/>
+                                </condition>
+                                <condition property="app.quarter" value="2" else="${app.quarter}">
+                                    <matches string="${app.month}" pattern="0[4-6]"/>
+                                </condition>
+                                <condition property="app.quarter" value="4" else="${app.quarter}">
+                                    <matches string="${app.month}" pattern="1[0-2]"/>
+                                </condition>
+                                <mkdir dir="${project.build.directory}\generated-resources"/>
+                                <propertyfile file="${app.version.file}">
+                                    <entry key="app.version" value="${app.year2}.${app.quarter}.${app.timestamp}"/>
+                                </propertyfile>
+                            </target>
+                            <exportAntProperties>true</exportAntProperties>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>copy-stable-artifact</id>
+                        <phase>verify</phase>
+                        <configuration>
+                            <target>
+                                <copy file="${project.build.directory}\${project.artifactId}-${project.version}.jar"
+                                      tofile="${project.build.directory}\Rachota.jar"
+                                      overwrite="true"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>org.cesilko.rachota.gui.MainWindow</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Implementation-Version>${app.version}</Implementation-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.cesilko.rachota.gui.MainWindow</mainClass>
+                                    <manifestEntries>
+                                        <Implementation-Version>${app.version}</Implementation-Version>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-runtime-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                <artifactId>launch4j-maven-plugin</artifactId>
+                <version>2.4.1</version>
+                <executions>
+                    <execution>
+                        <id>l4j-clui</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>launch4j</goal>
+                        </goals>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <jar>${project.build.directory}/${project.artifactId}-${project.version}.jar</jar>
+                            <outfile>${project.build.directory}/Rachota.exe</outfile>
+                            <!--<downloadUrl>http://java.com/download</downloadUrl>-->
+                            <classPath>
+                                <mainClass>org.cesilko.rachota.gui.MainWindow</mainClass>
+                            </classPath>
+                            <icon>other-resources/Rachota.ico</icon>
+                            <jre>
+                                <path>%JAVA_HOME%;%PATH%</path>
+                                <requiresJdk>false</requiresJdk>
+                                <minVersion>11.0.0</minVersion>
+                            </jre>
+                            <versionInfo>
+                                <fileVersion>1.0.0.0</fileVersion>
+                                <txtFileVersion>${app.version}</txtFileVersion>
+                                <fileDescription>${project.name}</fileDescription>
+                                <copyright></copyright>
+                                <productVersion>1.0.0.0</productVersion>
+                                <txtProductVersion>${app.version}</txtProductVersion>
+                                <productName>${project.name}</productName>
+                                <companyName></companyName>
+                                <internalName>Rachota</internalName>
+                                <originalFilename>Rachota.exe</originalFilename>
+                            </versionInfo>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
